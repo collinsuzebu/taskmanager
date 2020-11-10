@@ -62,20 +62,53 @@ class TaskViewsTest(APITestCase):
 		payload = {
 			"title": "New Task",
 			"task_type": "discussion",
-			"creator": "test_user",
+			"assignee": user_serializer.data,
 			"description": "New task long description...",
-			"tile": self.tile_serializer,
-			"creator": user_serializer.data
+			"tile": self.tile_serializer.data["id"], # use created tile id
 		}
 
 
 		response = self.client.post(reverse("tasks:task-list"), payload, format='json')
 
-
 		created_task = Task.objects.get(title=payload["title"])
 
 		self.assertEqual(status.HTTP_201_CREATED, response.status_code)
 
+		# assert returned data is same as posted data
 		for key, value in payload.items():
 			self.assertEqual(value, response.data[key])
-			self.assertEqual(value, getattr(created_task, key))
+
+
+	def test_can_edit_a_task(self):
+		'''
+			Ensure we can update task 
+		'''
+
+		user = User.objects.create_user(username='test_user_6', password='test_password')
+		user_serializer = UserSerializer(user)
+		self.client.login(username=user.username, password='test_password')		
+		
+		payload = {
+			"title": "New Task 2",
+			"task_type": "discussion",
+			"assignee": user,
+			"description": "New task long description...",
+			"tile": self.tile
+		}
+
+		update_payload = {
+			"task_type": "diary",
+			"assignee": user_serializer.data
+		}
+
+
+		new_task = Task.objects.create(**payload)
+		response = self.client.patch(
+			reverse("tasks:task-detail", args=[new_task.id]), update_payload, format="json")
+
+		new_task.refresh_from_db()
+
+		self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+		for key, value in update_payload.items():
+			self.assertEqual(value, response.data[key])
