@@ -9,21 +9,15 @@ from .mixins import DebugDBMixin
 
 
 
-class TileViewSet(viewsets.ModelViewSet):
-	queryset = Tile.objects.all()
+class TileViewSet(DebugDBMixin, viewsets.ReadOnlyModelViewSet):
+	queryset = Tile.objects.prefetch_related('tasks__assignee')
 	serializer_class = TileSerializer
 
 
 
-	# @action(detail=True, methods=['get'], serializer_class=TileSerializerWithTasks)
-	# def tasks(self, request, *args, **kwargs):
-	# 	return self.retrieve(request, *args, **kwargs)
-
-
-# ReadOnlyModelViewSet
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(DebugDBMixin, viewsets.ModelViewSet):
 
 	queryset = (
-		Task.objects.select_related('tile',)
+		Task.objects.select_related('assignee')
 	)
 	serializer_class = TaskSerializer
