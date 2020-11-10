@@ -23,6 +23,7 @@ class TaskSerializer(UserMixin, serializers.ModelSerializer):
 		fields = ['id', 'tile', 'title', 'task_type', 'assignee', 'description', 'created']
 		# read_only_fields = ['tile']
 
+
 	def create(self, validated_data):
 		assignee_data = validated_data.pop('assignee')
 		# check assigned user is valid or raise validation error
@@ -53,7 +54,7 @@ class TaskSerializer(UserMixin, serializers.ModelSerializer):
 
 
 class TileSerializer(UserMixin, serializers.ModelSerializer):
-	tasks = TaskSerializer(many=True)
+	tasks = TaskSerializer(many=True, read_only=True)
 	class Meta:
 		model = Tile
 		fields = ['id', 'status', 'launch_date', 'tasks', ]
